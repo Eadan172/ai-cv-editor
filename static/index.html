@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 求职助手 | 智能面试准备平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  --bg-card: rgba(24, 24, 27, 0.8);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --accent-tertiary: #a855f7;
+  --accent-glow: rgba(99, 102, 241, 0.4);
+  --success: #22c55e;
+  --success-glow: rgba(34, 197, 94, 0.3);
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  --gradient-bg: radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                 radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                 linear-gradient(180deg, #09090b 0%, #0c0c0f 100%);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans SC', 'Space Grotesk', -apple-system, sans-serif;
+  background: var(--gradient-bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated Background Patterns */
+.bg-pattern {
+  position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+}
+.bg-pattern::before {
+  content: '';
+  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+              radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 40%);
+  animation: bgPulse 20s ease-in-out infinite;
+}
+.bg-pattern::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+}
+@keyframes bgPulse {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(2%, -2%) rotate(1deg); }
+  66% { transform: translate(-1%, 1%) rotate(-1deg); }
+}
+
+.grid-lines {
+  position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none; z-index: 0;
+}
+
+.floating-orb {
+  position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0;
+  animation: float 15s ease-in-out infinite;
+}
+.orb-1 { width: 400px; height: 400px; background: rgba(99, 102, 241, 0.2); top: -100px; right: 10%; animation-delay: 0s; }
+.orb-2 { width: 300px; height: 300px; background: rgba(168, 85, 247, 0.15); bottom: -50px; left: 20%; animation-delay: -5s; }
+.orb-3 { width: 200px; height: 200px; background: rgba(139, 92, 246, 0.1); top: 50%; left: 5%; animation-delay: -10s; }
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(20px, -30px) scale(1.05); }
+  50% { transform: translate(-10px, 20px) scale(0.95); }
+  75% { transform: translate(30px, 10px) scale(1.02); }
+}
+
+/* Shell Layout */
+.shell {
+  display: flex; height: 100vh; position: relative; z-index: 1;
+}
+
+/* ─── LEFT PANEL ─── */
+.left {
+  width: 420px; min-width: 420px;
+  background: linear-gradient(180deg, rgba(24, 24, 27, 0.95) 0%, rgba(15, 15, 18, 0.98) 100%);
+  border-right: 1px solid var(--border-subtle);
+  display: flex; flex-direction: column; position: relative;
+}
+.left::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 200px;
+  background: radial-gradient(ellipse at center top, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.left-top {
+  padding: 32px 28px 0; position: relative; z-index: 1; flex: 1; overflow-y: auto;
+}
+
+/* Brand */
+.brand {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 32px;
+}
+.brand-icon {
+  width: 48px; height: 48px;
+  background: var(--gradient-primary); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; position: relative;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+}
+.brand-icon::before {
+  content: '';
+  position: absolute; inset: -2px; border-radius: 16px;
+  background: var(--gradient-primary); filter: blur(12px); opacity: 0.5; z-index: -1;
+}
+.brand-icon svg { width: 24px; height: 24px; fill: white; }
+.brand-text h1 {
+  font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.brand-text p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* Upload Section */
+.upload-wrapper { position: relative; margin-bottom: 20px; }
+.upload-card {
+  background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+  padding: 24px 20px; text-align: center; cursor: pointer; position: relative; overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(20px);
+}
+.upload-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
+  opacity: 0; transition: opacity 0.4s;
+}
+.upload-card:hover { border-color: var(--accent-primary); transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+.upload-card:hover::before { opacity: 1; }
+.upload-card.has-file { border-color: var(--success); background: rgba(34, 197, 94, 0.05); }
+.upload-icon {
+  width: 56px; height: 56px; margin: 0 auto 14px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center; position: relative;
+}
+.upload-icon svg { width: 28px; height: 28px; fill: var(--accent-primary); }
+.upload-icon::after {
+  content: '';
+  position: absolute; inset: -4px; border-radius: 20px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.1) 100%);
+  filter: blur(8px); opacity: 0; transition: opacity 0.3s;
+}
+.upload-card:hover .upload-icon::after { opacity: 1; }
+.u-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.u-sub { font-size: 12px; color: var(--text-muted); }
+#resumeInput, #jdInput { display: none; }
+
+/* Divider */
+.or-row { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.or-row span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+.or-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border-light), transparent); }
+
+/* JD Section */
+.jd-section { margin-bottom: 24px; }
+.section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.section-header svg { width: 16px; height: 16px; fill: var(--accent-secondary); }
+.section-header span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.jd-input-wrapper { position: relative; }
+#jdText {
+  width: 100%; height: 100px; padding: 12px 14px; font-size: 12px; font-family: inherit;
+  background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  color: var(--text-primary); line-height: 1.6; transition: all 0.3s;
+  backdrop-filter: blur(10px); resize: none;
+}
+#jdText:focus { outline: none; border-color: var(--accent-secondary); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1); }
+#jdText::placeholder { color: var(--text-muted); }
+
+/* API Settings */
+.api-section { margin-bottom: 24px; }
+.api-toggle {
+  display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 12px;
+}
+.api-toggle svg { width: 14px; height: 14px; fill: var(--text-muted); }
+.api-toggle span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.api-toggle .toggle-icon { font-size: 10px; color: var(--text-muted); margin-left: auto; }
+.api-input {
+  width: 100%; padding: 10px 12px; font-size: 12px; font-family: 'SF Mono', 'Menlo', monospace;
+  background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  color: var(--text-primary); transition: all 0.3s; backdrop-filter: blur(10px); margin-bottom: 8px;
+}
+.api-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+.api-input::placeholder { color: var(--text-muted); font-family: inherit; }
+.pwd-wrapper { position: relative; }
+.pwd-wrapper .api-input { padding-right: 40px; }
+.pwd-toggle {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  cursor: pointer; font-size: 13px; color: var(--text-muted); user-select: none; background: none; border: none;
+}
+
+/* Footer Buttons */
+.left-footer {
+  padding: 20px 28px 28px; display: flex; flex-direction: column; gap: 10px;
+  border-top: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 15, 18, 0.5) 100%);
+  position: relative; z-index: 1; margin-top: auto;
+}
+.btn-main {
+  background: var(--gradient-primary); color: white; border: none; border-radius: var(--radius-md);
+  padding: 14px 20px; font-size: 14px; font-weight: 600; width: 100%; cursor: pointer;
+  position: relative; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+}
+.btn-main::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5); }
+.btn-main:hover::before { opacity: 1; }
+.btn-main:disabled { background: var(--bg-secondary); color: var(--text-muted); cursor: not-allowed; box-shadow: none; }
+
+/* Progress */
+.progress-container { margin: 16px 0; }
+.progress-bar {
+  height: 4px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; position: relative;
+}
+.progress-bar::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.progress-fill {
+  height: 100%; background: var(--gradient-primary); border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute; right: 0; top: -2px; width: 8px; height: 8px;
+  background: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 12px var(--accent-glow);
+}
+.progress-text { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+/* Log Box */
+.log-box {
+  background: linear-gradient(180deg, rgba(13, 17, 23, 0.95) 0%, rgba(10, 14, 20, 0.98) 100%);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+  padding: 16px 20px; font-family: 'SF Mono', 'Menlo', monospace; font-size: 12px;
+  color: #8b949e; line-height: 1.8; max-height: 200px; overflow-y: auto;
+  backdrop-filter: blur(20px);
+}
+.log-entry { padding: 4px 0; display: flex; gap: 12px; }
+.log-time { color: var(--text-muted); flex-shrink: 0; }
+.log-msg { flex: 1; }
+.log-ok { color: #3fb950; }
+.log-warn { color: #d29922; }
+.log-err { color: #f85149; }
+.log-active { color: #58a6ff; }
+
+/* ─── RIGHT PANEL ─── */
+.right { flex: 1; overflow-y: auto; position: relative; z-index: 1; }
+.r-inner { padding: 40px 48px; max-width: 1200px; margin: 0 auto; }
+
+/* Empty State */
+.empty-state { text-align: center; padding: 80px 40px; position: relative; }
+.empty-visual { width: 180px; height: 180px; margin: 0 auto 40px; position: relative; }
+.empty-circle {
+  position: absolute; inset: 0; border: 2px dashed var(--border-light); border-radius: 50%;
+  animation: spin 30s linear infinite;
+}
+.empty-circle:nth-child(2) { inset: 20px; animation-direction: reverse; animation-duration: 25s; }
+.empty-circle:nth-child(3) {
+  inset: 40px; border-style: solid; border-color: var(--accent-primary); opacity: 0.3; animation-duration: 20s;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-icon {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 80px; height: 80px; background: var(--gradient-primary); border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-glow); animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+}
+.empty-icon svg { width: 40px; height: 40px; fill: white; }
+.empty-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 12px;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.empty-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.8; max-width: 480px; margin: 0 auto; }
+.empty-features { display: flex; justify-content: center; gap: 32px; margin-top: 48px; }
+.feature-item { text-align: center; }
+.feature-icon {
+  width: 48px; height: 48px; background: var(--bg-glass); border: 1px solid var(--border-subtle);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px; font-size: 20px;
+}
+.feature-text { font-size: 12px; color: var(--text-muted); }
+
+/* Loading State */
+.loading-state { text-align: center; padding: 80px 40px; }
+.spinner-wrap { text-align: center; padding: 40px; }
+.spinner {
+  width: 48px; height: 48px; border: 3px solid var(--border-subtle);
+  border-top-color: var(--accent-primary); border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+}
+.spinner-text { font-size: 14px; color: var(--text-secondary); }
+
+/* Section Headers */
+.sec-hd {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle);
+}
+.sec-hd h2 {
+  font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600;
+  display: flex; align-items: center; gap: 10px;
+}
+.sec-hd h2::before {
+  content: ''; width: 4px; height: 20px;
+  background: var(--gradient-primary); border-radius: 2px;
+}
+
+/* Output Cards */
+.out-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 28px;
+}
+.out-card {
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+  padding: 24px 20px; text-align: center; backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+}
+.out-card::before {
+  content: '';
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 60%; height: 2px; background: var(--gradient-primary); opacity: 0; transition: opacity 0.3s;
+}
+.out-card:hover { transform: translateY(-4px); border-color: var(--border-light); }
+.out-card:hover::before { opacity: 1; }
+.out-icon {
+  width: 60px; height: 60px; background: var(--bg-glass); border: 1px solid var(--border-subtle);
+  border-radius: 18px; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px; font-size: 28px;
+}
+.out-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.out-card p { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
+.btn-out {
+  width: 100%; padding: 10px 16px; border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s;
+}
+.btn-primary { background: var(--gradient-primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
+.btn-outline {
+  background: var(--bg-glass); color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+.btn-outline:hover { border-color: var(--border-light); color: var(--text-primary); }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-subtle); margin-bottom: 24px; }
+.tab {
+  padding: 12px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+}
+.tab:hover { color: var(--text-secondary); }
+.tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Resume Preview */
+.resume-preview {
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl);
+  padding: 28px 32px; white-space: pre-wrap; font-size: 14px; line-height: 1.8;
+  max-height: 600px; overflow-y: auto; backdrop-filter: blur(20px); position: relative;
+}
+.resume-preview::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-primary);
+}
+
+/* Script Preview */
+.script-preview {
+  white-space: pre-wrap; font-size: 14px; line-height: 1.8;
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl);
+  padding: 28px 32px; max-height: 600px; overflow-y: auto; backdrop-filter: blur(20px);
+}
+
+/* Questions */
+.question-category { margin-bottom: 20px; }
+.question-category h3 {
+  font-size: 14px; font-weight: 600; color: var(--accent-primary); margin-bottom: 10px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle);
+}
+.question-item {
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  padding: 14px 16px; margin-bottom: 8px; backdrop-filter: blur(20px);
+}
+.question-item .q { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.question-item .meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap; }
+.question-item .meta .label { color: var(--text-muted); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* Animation */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.section { display: none; }
+.section.visible { display: block; animation: fadeIn 0.4s; }
+</style>
+</head>
+<body>
+<!-- Background Effects -->
+<div class="bg-pattern"></div>
+<div class="grid-lines"></div>
+<div class="floating-orb orb-1"></div>
+<div class="floating-orb orb-2"></div>
+<div class="floating-orb orb-3"></div>
+
+<div class="shell">
+  <!-- ─── LEFT PANEL ─── -->
+  <div class="left">
+    <div class="left-top">
+      <!-- Brand -->
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>AI 求职助手</h1>
+          <p>智能面试准备平台</p>
+        </div>
+      </div>
+
+      <!-- Upload Resume -->
+      <div class="upload-wrapper">
+        <div class="upload-card" id="resumeArea" onclick="document.getElementById('resumeInput').click()">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"/></svg>
+          </div>
+          <div class="u-title" id="resumeLabel">上传简历文件</div>
+          <div class="u-sub">支持 DOCX / TXT 格式</div>
+        </div>
+        <input type="file" id="resumeInput" accept=".docx,.txt" onchange="handleResumeFile(this.files[0])">
+      </div>
+
+      <!-- Divider -->
+      <div class="or-row">
+        <div class="or-line"></div>
+        <span>岗位描述</span>
+        <div class="or-line"></div>
+      </div>
+
+      <!-- JD Upload + Text -->
+      <div class="jd-section">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/></svg>
+          <span>上传 JD 文件</span>
+        </div>
+        <div class="upload-wrapper" style="margin-bottom:12px">
+          <div class="upload-card" id="jdArea" onclick="document.getElementById('jdInput').click()" style="padding:16px 20px">
+            <div class="upload-icon" style="width:44px;height:44px;border-radius:12px;margin-bottom:10px">
+              <svg viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"/></svg>
+            </div>
+            <div class="u-title" id="jdLabel" style="font-size:13px">上传 JD 文件</div>
+            <div class="u-sub">支持 TXT / DOCX 格式</div>
+          </div>
+          <input type="file" id="jdInput" accept=".txt,.docx" onchange="handleJDFile(this.files[0])">
+        </div>
+        <div class="section-header">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span>或粘贴 JD 内容</span>
+        </div>
+        <div class="jd-input-wrapper">
+          <textarea id="jdText" placeholder="粘贴目标岗位描述，系统将据此优化简历和面试材料..."></textarea>
+        </div>
+      </div>
+
+      <!-- API Settings -->
+      <div class="api-section">
+        <div class="api-toggle" onclick="toggleApiSettings()">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>API 设置</span>
+          <span class="toggle-icon" id="apiToggleIcon">▶</span>
+        </div>
+        <div id="apiSettings" style="display:none">
+          <div class="pwd-wrapper">
+            <input type="password" id="apiKey" class="api-input" placeholder="sk-...">
+            <button class="pwd-toggle" id="togglePwd" onclick="toggleApiKeyVisibility()">👁</button>
+          </div>
+          <input type="text" id="apiBaseUrl" class="api-input" placeholder="https://api.openai.com/v1">
+          <input type="text" id="apiModel" class="api-input" placeholder="gpt-4o">
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="left-footer">
+      <button class="btn-main" id="runBtn" disabled onclick="startRun()">
+        <span>🚀</span> 开始生成
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── RIGHT PANEL ─── -->
+  <div class="right">
+    <div class="r-inner">
+      <!-- Empty State -->
+      <div id="emptyState" class="empty-state">
+        <div class="empty-visual">
+          <div class="empty-circle"></div>
+          <div class="empty-circle"></div>
+          <div class="empty-circle"></div>
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          </div>
+        </div>
+        <h2 class="empty-title">AI 驱动智能求职</h2>
+        <p class="empty-desc">
+          上传您的简历和岗位 JD，AI 将自动分析匹配度<br>
+          生成优化简历、面试 PPT、讲稿和面试提问
+        </p>
+        <div class="empty-features">
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div class="feature-text">智能匹配</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-text">精准优化</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">💼</div>
+            <div class="feature-text">面试材料</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🎤</div>
+            <div class="feature-text">逐页讲稿</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="loading-state" style="display:none">
+        <div class="spinner-wrap">
+          <div class="spinner"></div>
+          <p class="spinner-text">AI 正在生成中，请稍候…</p>
+        </div>
+        <div class="progress-container" style="max-width:400px;margin:24px auto">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+          <div class="progress-text" id="progressText">准备中…</div>
+        </div>
+        <div class="log-box" id="logBox" style="max-width:500px;margin:0 auto"></div>
+      </div>
+
+      <!-- Result Area -->
+      <div id="resultArea" style="display:none">
+        <!-- Download Cards -->
+        <div class="sec-hd"><h2>生成材料</h2></div>
+        <div class="out-grid" id="downloadCards"></div>
+
+        <!-- Tabs -->
+        <div class="tabs" id="tabs">
+          <div class="tab active" data-tab="resume">优化简历</div>
+          <div class="tab" data-tab="script">面试讲稿</div>
+          <div class="tab" data-tab="questions">面试提问</div>
+        </div>
+
+        <div class="tab-content active" id="tab-resume">
+          <div class="resume-preview" id="resumePreview"></div>
+        </div>
+        <div class="tab-content" id="tab-script">
+          <div class="script-preview" id="scriptPreview"></div>
+        </div>
+        <div class="tab-content" id="tab-questions">
+          <div id="questionsPreview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ───
+const STATE = {
+  resumeFile: null,
+  jdFile: null,
+  jdText: '',
+  result: null,
+};
+
+// ─── File Handling ───
+function handleResumeFile(file) {
+  if (!file) return;
+  STATE.resumeFile = file;
+  document.getElementById('resumeArea').classList.add('has-file');
+  document.getElementById('resumeLabel').textContent = '简历: ' + file.name;
+  updateRunBtn();
+}
+
+function handleJDFile(file) {
+  if (!file) return;
+  STATE.jdFile = file;
+  STATE.jdText = '';
+  document.getElementById('jdArea').classList.add('has-file');
+  document.getElementById('jdLabel').textContent = 'JD: ' + file.name;
+  document.getElementById('jdText').value = '';
+  updateRunBtn();
+}
+
+document.getElementById('jdText').addEventListener('input', function() {
+  STATE.jdText = this.value.trim();
+  if (STATE.jdText) {
+    STATE.jdFile = null;
+    document.getElementById('jdArea').classList.remove('has-file');
+    document.getElementById('jdLabel').textContent = '上传 JD 文件';
+    document.getElementById('jdInput').value = '';
+  }
+  updateRunBtn();
+});
+
+function updateRunBtn() {
+  const hasResume = !!STATE.resumeFile;
+  const hasJD = !!STATE.jdFile || !!STATE.jdText;
+  document.getElementById('runBtn').disabled = !(hasResume && hasJD);
+}
+
+// ─── Drag & Drop ───
+['resumeArea', 'jdArea'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('dragover', e => { e.preventDefault(); el.style.borderColor = 'var(--accent-primary)'; });
+  el.addEventListener('dragleave', () => { el.style.borderColor = ''; });
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    el.style.borderColor = '';
+    const file = e.dataTransfer.files[0];
+    if (id === 'resumeArea') handleResumeFile(file);
+    else handleJDFile(file);
+  });
+});
+
+// ─── API Settings ───
+function toggleApiSettings() {
+  const el = document.getElementById('apiSettings');
+  const icon = document.getElementById('apiToggleIcon');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    icon.textContent = '▼';
+  } else {
+    el.style.display = 'none';
+    icon.textContent = '▶';
+  }
+}
+
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('apiKey');
+  const icon = document.getElementById('togglePwd');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    icon.textContent = '👁';
+  }
+}
+
+// ─── Log ───
+function log(msg, type) {
+  const box = document.getElementById('logBox');
+  box.style.display = 'block';
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const ts = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+  entry.innerHTML = `<span class="log-time">[${ts}]</span><span class="log-msg log-${type || 'active'}">${msg}</span>`;
+  box.appendChild(entry);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ─── Progress ───
+function setProgress(pct, text) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = text;
+}
+
+// ─── Main Pipeline ───
+async function startRun() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ 生成中…';
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('logBox').innerHTML = '';
+
+  setProgress(5, '正在上传文件…');
+  log('开始处理任务');
+
+  try {
+    const formData = new FormData();
+    formData.append('resume_file', STATE.resumeFile);
+    if (STATE.jdFile) formData.append('jd_file', STATE.jdFile);
+    if (STATE.jdText) formData.append('jd_text', STATE.jdText);
+
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const apiBaseUrl = document.getElementById('apiBaseUrl').value.trim();
+    const apiModel = document.getElementById('apiModel').value.trim();
+    if (apiKey) formData.append('api_key', apiKey);
+    if (apiBaseUrl) formData.append('api_base_url', apiBaseUrl);
+    if (apiModel) formData.append('api_model', apiModel);
+
+    setProgress(15, '正在解析简历和JD…');
+    log('上传简历: ' + STATE.resumeFile.name, 'ok');
+    log('上传JD: ' + (STATE.jdFile ? STATE.jdFile.name : '文本粘贴'), 'ok');
+
+    setProgress(25, 'AI 正在优化简历…');
+    log('AI 正在分析简历与岗位匹配度…');
+
+    const resp = await fetch('/api/run', { method: 'POST', body: formData });
+
+    setProgress(80, '正在生成文件…');
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || '请求失败');
+    }
+
+    const data = await resp.json();
+    STATE.result = data;
+
+    setProgress(100, '生成完成！');
+    log('优化简历生成完成', 'ok');
+    log('面试PPT生成完成', 'ok');
+    log('面试讲稿生成完成', 'ok');
+    log('面试提问生成完成', 'ok');
+
+    renderResults(data);
+
+    // 延迟切换到结果页
+    setTimeout(() => {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('resultArea').style.display = 'block';
+    }, 500);
+
+  } catch (err) {
+    log('错误: ' + err.message, 'err');
+    setProgress(0, '处理失败');
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+    alert('处理失败: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>🚀</span> 开始生成';
+    updateRunBtn();
+  }
+}
+
+// ─── Render Results ───
+function renderResults(data) {
+  const dl = document.getElementById('downloadCards');
+  dl.innerHTML = `
+    <div class="out-card">
+      <div class="out-icon">📄</div>
+      <h4>优化简历</h4>
+      <p>.docx 格式</p>
+      <button class="btn-out btn-primary" onclick="downloadFile('${data.downloads.resume_docx}')">下载</button>
+    </div>
+    <div class="out-card">
+      <div class="out-icon">📊</div>
+      <h4>面试PPT</h4>
+      <p>.pptx 格式</p>
+      <button class="btn-out btn-primary" onclick="downloadFile('${data.downloads.ppt}')">下载</button>
+    </div>
+    <div class="out-card">
+      <div class="out-icon">🎤</div>
+      <h4>面试讲稿</h4>
+      <p>.txt 格式</p>
+      <button class="btn-out btn-outline" onclick="downloadFile('${data.downloads.script}')">下载</button>
+    </div>
+    <div class="out-card">
+      <div class="out-icon">❓</div>
+      <h4>面试提问</h4>
+      <p>.json 格式</p>
+      <button class="btn-out btn-outline" onclick="downloadFile('${data.downloads.questions}')">下载</button>
+    </div>
+  `;
+
+  document.getElementById('resumePreview').textContent = data.resume_text;
+  document.getElementById('scriptPreview').textContent = data.script_text;
+  renderQuestions(data.questions);
+  initTabs();
+}
+
+function renderQuestions(questions) {
+  const container = document.getElementById('questionsPreview');
+  const categories = [
+    { key: 'self_intro_questions', title: '自我介绍' },
+    { key: 'technical_questions', title: '技术问题' },
+    { key: 'project_questions', title: '项目经验' },
+    { key: 'behavioral_questions', title: '行为面试' },
+    { key: 'jd_match_questions', title: '岗位匹配' },
+    { key: 'reverse_questions', title: '反问面试官' },
+  ];
+
+  let html = '';
+  for (const cat of categories) {
+    const items = questions[cat.key];
+    if (!items || items.length === 0) continue;
+    html += `<div class="question-category"><h3>${cat.title}</h3>`;
+    if (cat.key === 'reverse_questions') {
+      for (const q of items) {
+        html += `<div class="question-item"><div class="q">💡 ${q}</div></div>`;
+      }
+    } else {
+      for (const item of items) {
+        html += `<div class="question-item">
+          <div class="q">❓ ${item.question}</div>
+          <div class="meta">
+            <span><span class="label">考察目的：</span>${item.purpose}</span>
+            <span><span class="label">期望回答：</span>${item.expected_answer_hint}</span>
+          </div>
+        </div>`;
+      }
+    }
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function initTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.onclick = function() {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+    };
+  });
+}
+
+function downloadFile(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
+</body>
+</html>
